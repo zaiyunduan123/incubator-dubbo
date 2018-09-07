@@ -23,7 +23,7 @@ import org.apache.dubbo.rpc.Invoker;
 import org.apache.dubbo.rpc.RpcStatus;
 
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.Random;
 
 /**
  * LeastActiveLoadBalance
@@ -32,6 +32,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class LeastActiveLoadBalance extends AbstractLoadBalance {
 
     public static final String NAME = "leastactive";
+    private final Random random = new Random();
 
     @Override
     protected <T> Invoker<T> doSelect(List<Invoker<T>> invokers, URL url, Invocation invocation) {
@@ -42,6 +43,7 @@ public class LeastActiveLoadBalance extends AbstractLoadBalance {
         int totalWeight = 0; // The sum of weights
         int firstWeight = 0; // Initial value, used for comparision
         boolean sameWeight = true; // Every invoker has the same weight value?
+
         for (int i = 0; i < length; i++) {
             Invoker<T> invoker = invokers.get(i);
             int active = RpcStatus.getStatus(invoker.getUrl(), invocation.getMethodName()).getActive(); // Active number
@@ -70,7 +72,7 @@ public class LeastActiveLoadBalance extends AbstractLoadBalance {
         }
         if (!sameWeight && totalWeight > 0) {
             // If (not every invoker has the same weight & at least one invoker's weight>0), select randomly based on totalWeight.
-            int offsetWeight = ThreadLocalRandom.current().nextInt(totalWeight);
+            int offsetWeight = random.nextInt(totalWeight);
             // Return a invoker based on the random value.
             for (int i = 0; i < leastCount; i++) {
                 int leastIndex = leastIndexs[i];
@@ -80,6 +82,6 @@ public class LeastActiveLoadBalance extends AbstractLoadBalance {
             }
         }
         // If all invokers have the same weight value or totalWeight=0, return evenly.
-        return invokers.get(leastIndexs[ThreadLocalRandom.current().nextInt(leastCount)]);
+        return invokers.get(leastIndexs[random.nextInt(leastCount)]);
     }
 }

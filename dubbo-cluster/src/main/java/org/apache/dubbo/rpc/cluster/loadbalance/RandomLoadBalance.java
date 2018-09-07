@@ -21,8 +21,7 @@ import org.apache.dubbo.rpc.Invocation;
 import org.apache.dubbo.rpc.Invoker;
 
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-
+import java.util.Random;
 /**
  * random load balance.
  *
@@ -30,6 +29,7 @@ import java.util.concurrent.ThreadLocalRandom;
 public class RandomLoadBalance extends AbstractLoadBalance {
 
     public static final String NAME = "random";
+    private final Random random = new Random();
 
     @Override
     protected <T> Invoker<T> doSelect(List<Invoker<T>> invokers, URL url, Invocation invocation) {
@@ -46,7 +46,7 @@ public class RandomLoadBalance extends AbstractLoadBalance {
         }
         if (totalWeight > 0 && !sameWeight) {
             // If (not every invoker has the same weight & at least one invoker's weight>0), select randomly based on totalWeight.
-            int offset = ThreadLocalRandom.current().nextInt(totalWeight);
+            int offset = random.nextInt(totalWeight);
             // Return a invoker based on the random value.
             for (int i = 0; i < length; i++) {
                 offset -= getWeight(invokers.get(i), invocation);
@@ -56,7 +56,7 @@ public class RandomLoadBalance extends AbstractLoadBalance {
             }
         }
         // If all invokers have the same weight value or totalWeight=0, return evenly.
-        return invokers.get(ThreadLocalRandom.current().nextInt(length));
+        return invokers.get(random.nextInt(length));
     }
 
 }
